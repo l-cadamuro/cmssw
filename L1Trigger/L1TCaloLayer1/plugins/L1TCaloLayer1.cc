@@ -175,10 +175,10 @@ L1TCaloLayer1::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // 1% is good enough
   int diff = abs(layer1->et() - expectedTotalET);
   if(verbose && diff > 0.01 * expectedTotalET ) {
-    print();
-    std::cout << "Expected " 
-	      << std::showbase << std::internal << std::setfill('0') << std::setw(10) << std::hex
-	      << expectedTotalET << std::dec << std::endl;
+    //print();
+    //    std::cout << "Expected " 
+    //	      << std::showbase << std::internal << std::setfill('0') << std::setw(10) << std::hex
+    //	      << expectedTotalET << std::dec << std::endl;
   }
 
   int theBX = 0; // Currently we only read and process the "hit" BX only
@@ -223,7 +223,7 @@ void L1TCaloLayer1::print() {
 	  bool header = true;
 	  for(uint32_t twr = 0; twr < towers.size(); twr++) {
 	    if(towers[twr]->caloPhi() == hitPhi && towers[twr]->caloEta() == hitEta) {
-	      std::cout << "*";
+	      //	      std::cout << "*";
 	    }
 	    towers[twr]->print(header);
 	    if(header) header = false;

@@ -5,7 +5,7 @@ process = cms.Process("L1TCaloLayer1Test")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.load('EventFilter.L1TCaloLayer1RawToDigi.l1tCaloLayer1Digis_cfi')
 process.load('L1Trigger.L1TCaloLayer1.layer1EmulatorDigis_cfi')
-process.layer1EmulatorDigis.verbose = cms.bool(True)
+process.layer1EmulatorDigis.verbose = cms.bool(False)
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 
