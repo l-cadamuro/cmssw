@@ -6,4 +6,4 @@ The input to the emulator are the ECAL and HCAL TPGs
 
 The output of the emulator is the CaloTower collection
 
-FIXME: Look-up-tables, parameter setting etc. are NOT yet implemented.
+FIXME: Look-up-tables, parameter setting etc. are about to be implemented.
