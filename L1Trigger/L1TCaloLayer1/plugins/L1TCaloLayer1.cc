@@ -42,6 +42,8 @@
 
 #include "DataFormats/L1TCalorimeter/interface/CaloTower.h"
 
+#include "L1Trigger/L1TCaloLayer1/src/L1TCaloLayer1FetchLUTs.hh"
+
 using namespace l1t;
 
 //
@@ -60,7 +62,8 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&) override;
   virtual void endJob() override;
       
-  //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
+  virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
+
   //virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
   //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
   //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
@@ -73,7 +76,10 @@ private:
   std::string ecalTPSourceLabel;
   edm::EDGetTokenT<HcalTrigPrimDigiCollection> hcalTPSource;
   std::string hcalTPSourceLabel;
-
+  
+  std::vector< std::vector< std::vector < uint32_t > > > ecalLUT;
+  std::vector< std::vector< std::vector < uint32_t > > > hcalLUT;
+  
   bool verbose;
 
   UCTLayer1 *layer1;
@@ -97,6 +103,8 @@ L1TCaloLayer1::L1TCaloLayer1(const edm::ParameterSet& iConfig) :
   ecalTPSourceLabel(iConfig.getParameter<edm::InputTag>("ecalTPSource").label()),
   hcalTPSource(consumes<HcalTrigPrimDigiCollection>(iConfig.getParameter<edm::InputTag>("hcalTPSource"))),
   hcalTPSourceLabel(iConfig.getParameter<edm::InputTag>("hcalTPSource").label()),
+  ecalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
+  hcalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
   verbose(iConfig.getParameter<bool>("verbose")) 
 {
   produces<CaloTowerBxCollection>();
@@ -250,13 +258,28 @@ L1TCaloLayer1::endJob() {
 }
 
 // ------------ method called when starting to processes a run  ------------
-/*
-  void
-  L1TCaloLayer1::beginRun(edm::Run const&, edm::EventSetup const&)
-  {
+void
+L1TCaloLayer1::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
+{
+  if(!L1TCaloLayer1FetchLUTs(iSetup, ecalLUT, hcalLUT)) {
+    std::cerr << "beginRun: failed to fetch LUTS" << std::endl;
   }
-*/
- 
+  vector<UCTCrate*> crates = layer1->getCrates();
+  for(uint32_t crt = 0; crt < crates.size(); crt++) {
+    vector<UCTCard*> cards = crates[crt]->getCards();
+    for(uint32_t crd = 0; crd < cards.size(); crd++) {
+      vector<UCTRegion*> regions = cards[crd]->getRegions();
+      for(uint32_t rgn = 0; rgn < regions.size(); rgn++) {
+	vector<UCTTower*> towers = regions[rgn]->getTowers();
+	for(uint32_t twr = 0; twr < towers.size(); twr++) {
+	  towers[twr]->setECALLUT(&ecalLUT);
+	  towers[twr]->setHCALLUT(&hcalLUT);
+	}
+      }
+    }
+  }
+}
+
 // ------------ method called when ending the processing of a run  ------------
 /*
   void

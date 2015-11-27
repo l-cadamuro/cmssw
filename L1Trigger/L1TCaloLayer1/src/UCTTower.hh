@@ -3,6 +3,10 @@
 
 #include "UCTGeometry.hh"
 
+#include <vector>
+
+#define etInputMax 0xFF
+
 #define etMask 0x000001FF
 #define erMask 0x00000E00
 #define erMaxV 7
@@ -36,6 +40,8 @@ public:
     ecalET(0),
     hcalET(0),
     hcalFB(0),
+    ecalLUT(0),
+    hcalLUT(0),
     towerData(0)
   {}
 
@@ -61,6 +67,42 @@ public:
   bool setECALData(bool ecalFG, uint32_t ecalET);
   bool setHCALData(uint32_t hcalET, uint32_t hcalFB);
 
+  bool setECALLUT(const std::vector< std::vector< std::vector< uint32_t > > > *l) {
+    if(l->size() != NEta) {
+      return false;
+    }
+    for(uint32_t i = 0; i < NEta; i++) {
+      if(l[i].size() != 2) {
+	return false;
+      }
+      for(uint32_t j = 0; j < 2; j++) {
+	if(l[i][j].size() != 256) {
+	  return false;
+	}	
+      }
+    }
+    ecalLUT = l;
+    return true;
+  }
+  
+  bool setHCALLUT(const std::vector< std::vector< std::vector< uint32_t > > > *l) {
+    if(l->size() != NEta) {
+      return false;
+    }
+    for(uint32_t i = 0; i < NEta; i++) {
+      if(l[i].size() != 2) {
+	return false;
+      }
+      for(uint32_t j = 0; j < 2; j++) {
+	if(l[i][j].size() != 256) {
+	  return false;
+	}	
+      }
+    }
+    hcalLUT = l;
+    return true;
+  }
+  
   bool process();
 
   // Packed data access
@@ -140,6 +182,11 @@ private:
   uint32_t hcalET;
   uint32_t hcalFB;
 
+  // Lookup table
+
+  const std::vector< std::vector< std::vector< uint32_t > > > *ecalLUT;
+  const std::vector< std::vector< std::vector< uint32_t > > > *hcalLUT;
+  
   // Owned tower level data 
   // Packed bits -- only bottom 16 bits are used in "prelim" protocol
 

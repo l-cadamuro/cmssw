@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <vector>
 #include <math.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -8,7 +9,39 @@
 #include "UCTTower.hh"
 
 bool UCTTower::process() {
-  towerData = ecalET + hcalET;
+  uint32_t calibratedECALET = ecalET;
+  uint32_t logECALET = (uint32_t) log2((double) ecalET);
+  if(logECALET > erMaxV) logECALET = erMaxV;
+  if(ecalLUT != 0) {
+    const std::vector< std::vector< uint32_t> > a = ecalLUT->at(region * NEtaInRegion + iEta);
+    if(!ecalFG) {
+      const std::vector<uint32_t> e = a.at(0);
+      calibratedECALET = e[ecalET] & etInputMax;
+      logECALET = (e[ecalET] & 0x7000) >> 12;
+    }
+    else {
+      const std::vector<uint32_t> e = a.at(1);
+      calibratedECALET = e[ecalET] & etInputMax;
+      logECALET = (e[ecalET] & 0x7000) >> 12;
+    }
+  }
+  uint32_t calibratedHCALET = hcalET;
+  uint32_t logHCALET = (uint32_t) log2((double) hcalET);
+  if(logHCALET > erMaxV) logHCALET = erMaxV;
+  if(hcalLUT != 0) {
+    const std::vector< std::vector< uint32_t> > a = hcalLUT->at(region * NEtaInRegion + iEta);
+    if(hcalFB == 0) {
+      const std::vector<uint32_t> h = a.at(0);
+      calibratedHCALET = h[hcalET] & etInputMax;
+      logHCALET = (h[hcalET] & 0x7000) >> 12;
+    }
+    else {
+      const std::vector<uint32_t> h = a.at(1);
+      calibratedHCALET = h[hcalET] & etInputMax;
+      logHCALET = (h[hcalET] & 0x7000) >> 12;
+    }
+  }
+  towerData = calibratedECALET + calibratedHCALET;
   if(towerData > etMask) towerData = etMask;
   uint32_t er = 0;
   if(ecalET == 0 || hcalET == 0) {
@@ -22,12 +55,12 @@ bool UCTTower::process() {
     towerData |= eohrFlagMask;
   }
   else if(ecalET > hcalET) {
-    er = (uint32_t) log2(((double) ecalET) / ((double) hcalET));
+    er = logECALET - logHCALET;
     if(er > erMaxV) er = erMaxV;
     towerData |= eohrFlagMask;
   }
   else {
-    er = (uint32_t) log2(((double) hcalET) / ((double) ecalET));
+    er = logHCALET - logECALET;
     if(er > erMaxV) er = erMaxV;
   }
   towerData |= (er << erShift);
@@ -38,8 +71,8 @@ bool UCTTower::process() {
   if((hcalFB & 0x1) != 0) towerData |= hcalFlagMask; // FIXME - ignore top bits if(hcalFB != 0)
   if(ecalFG) towerData |= ecalFlagMask;
   // Store ecal and hcal calibrated ET in unused upper bits
-  towerData |= (ecalET << ecalShift);
-  towerData |= (hcalET << hcalShift);
+  towerData |= (calibratedECALET << ecalShift);
+  towerData |= (calibratedHCALET << hcalShift);
   // All done!
   return true;
 }

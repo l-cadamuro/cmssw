@@ -4,6 +4,8 @@
 <use name="FWCore/MessageLogger"/>
 <use name="DataFormats/HcalDigi"/>
 <use name="DataFormats/EcalDigi"/>
+<use name="CondFormats/L1TObjects"/>
+<use name="CondFormats/DataRecord"/>
 <use name="DataFormats/L1TCalorimeter"/>
 <use name="L1Trigger/L1TCaloLayer1"/>
 <flags EDM_PLUGIN="1"/>
