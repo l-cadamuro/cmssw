@@ -138,11 +138,13 @@ public:
 
   const int caloEta() const {
     UCTGeometry g;
+    std::cout << "(negativeEta, region, iEta) = ("<< negativeEta << ", " << region << ", " << iEta << ")" << std::endl;
     return g.getCaloEtaIndex(negativeEta, region, iEta);
   }
 
   const int caloPhi() const {
     UCTGeometry g;
+    std::cout << "(crate, card, region, iPhi) = (" << crate << ", " << card << ", " << region << ", " << iPhi << ")" << std::endl;
     return g.getCaloPhiIndex(crate, card, region, iPhi);
   }
 

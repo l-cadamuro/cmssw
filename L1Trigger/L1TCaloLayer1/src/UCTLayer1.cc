@@ -52,6 +52,14 @@ const UCTRegion* UCTLayer1::getRegion(int regionEtaIndex, uint32_t regionPhiInde
   const UCTCrate* crate = crates[crt];
   const UCTCard* card = crate->getCard(t);
   const UCTRegion* region = card->getRegion(r);
+  if(region->et() > 10) {
+    std::cout << "UCTLayer1::getRegion - (regionEta, regionPhi) = (" << regionEtaIndex << ", " << regionPhiIndex << ")"
+	      << "; (absCaloEta, absCaloPhi) = (" << absCaloEta << ", " << absCaloPhi << ")"
+	      << "; side = " << t.first / absCaloEta
+	      << "; crt = " << crt
+	      << "; et = " << region->et()
+	      << std::endl;
+  }
   return region;
 }
 
