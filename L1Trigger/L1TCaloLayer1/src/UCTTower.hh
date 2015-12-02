@@ -68,8 +68,9 @@ public:
   bool setHCALData(uint32_t hcalET, uint32_t hcalFB);
 
   bool setECALLUT(const std::vector< std::vector< std::vector< uint32_t > > > *l) {
+    /*
     if(l->size() != NEta) {
-      return false;
+    return false;
     }
     for(uint32_t i = 0; i < NEta; i++) {
       if(l[i].size() != 2) {
@@ -81,11 +82,13 @@ public:
 	}	
       }
     }
+    */
     ecalLUT = l;
     return true;
   }
   
   bool setHCALLUT(const std::vector< std::vector< std::vector< uint32_t > > > *l) {
+    /*
     if(l->size() != NEta) {
       return false;
     }
@@ -99,6 +102,7 @@ public:
 	}	
       }
     }
+    */
     hcalLUT = l;
     return true;
   }

@@ -9,6 +9,9 @@
 #include "UCTTower.hh"
 
 bool UCTTower::process() {
+  if(region >= NRegionsInCard) return true;
+  if(ecalET > 0xFF) ecalET = 0xFF;
+  if(hcalET > 0xFF) hcalET = 0xFF;
   uint32_t calibratedECALET = ecalET;
   uint32_t logECALET = (uint32_t) log2((double) ecalET);
   if(logECALET > erMaxV) logECALET = erMaxV;
