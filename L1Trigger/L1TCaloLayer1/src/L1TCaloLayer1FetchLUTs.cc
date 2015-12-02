@@ -21,7 +21,9 @@
 
 bool L1TCaloLayer1FetchLUTs(const edm::EventSetup& iSetup, 
 			    std::vector< std::vector< std::vector < uint32_t > > > &eLUT,
-			    std::vector< std::vector< std::vector < uint32_t > > > &hLUT) {
+			    std::vector< std::vector< std::vector < uint32_t > > > &hLUT,
+			    bool useLSB,
+			    bool useLUT) {
 
   // get rct parameters - these should contain Laura Dodd's tower-level scalefactors (ET, eta)
 
@@ -29,21 +31,21 @@ bool L1TCaloLayer1FetchLUTs(const edm::EventSetup& iSetup,
   iSetup.get<L1RCTParametersRcd>().get(rctParameters);
   const L1RCTParameters* rctParameters_ = rctParameters.product();
   if(rctParameters_ == 0) return false;
-  std::cout << "Got rctParameters" << std::endl;
+
 
   // get energy scale to convert input from ECAL - this should be linear with LSB = 0.5 GeV
   edm::ESHandle<L1CaloEcalScale> ecalScale;
   iSetup.get<L1CaloEcalScaleRcd>().get(ecalScale);
   const L1CaloEcalScale* e = ecalScale.product();
   if(e == 0) return false;
-  std::cout << "Got ecalScale" << std::endl;
+
       
   // get energy scale to convert input from HCAL - this should be Landsberg's E to ET etc non-linear conversion factors
   edm::ESHandle<L1CaloHcalScale> hcalScale;
   iSetup.get<L1CaloHcalScaleRcd>().get(hcalScale);
   const L1CaloHcalScale* h = hcalScale.product();
   if(h == 0) return false;
-  std::cout << "Got hcalScale" << std::endl;
+
 
   for(int absCaloEta = 1; absCaloEta <= 28; absCaloEta++) {
     uint32_t iEta = absCaloEta - 1;
@@ -54,7 +56,10 @@ bool L1TCaloLayer1FetchLUTs(const edm::EventSetup& iSetup,
 	  std::cerr << "L1TCaloLayer1FetchLUTs - ecal scale factors are different for positive and negative eta ! :(" << std::endl;
 	}
 	// Use hcal = 0 to get ecal only energy but in RCT JetMET scale - should be 8-bit max
-	uint32_t value = (rctParameters_->JetMETTPGSum(linearizedECalInput, 0, absCaloEta) / rctParameters_->jetMETLSB());
+	double calibratedECalInput = linearizedECalInput;
+	if(useLUT) calibratedECalInput = rctParameters_->JetMETTPGSum(linearizedECalInput, 0, absCaloEta);
+	uint32_t value = calibratedECalInput;
+	if(useLSB) value = calibratedECalInput / rctParameters_->jetMETLSB();
 	if(value > 0xFF) {
 	  value = 0xFF;
 	}
@@ -80,7 +85,10 @@ bool L1TCaloLayer1FetchLUTs(const edm::EventSetup& iSetup,
 	  std::cerr << "L1TCaloLayer1FetchLUTs - hcal scale factors are different for positive and negative eta ! :(" << std::endl;
 	}
 	// Use ecal = 0 to get hcal only energy but in RCT JetMET scale - should be 8-bit max
-	uint32_t value = (rctParameters_->JetMETTPGSum(0, linearizedHCalInput, absCaloEta) / rctParameters_->jetMETLSB());
+	double calibratedHCalInput = linearizedHCalInput;
+	if(useLUT) calibratedHCalInput = rctParameters_->JetMETTPGSum(0, linearizedHCalInput, absCaloEta);
+	uint32_t value =calibratedHCalInput;
+	if(useLSB) value = calibratedHCalInput / rctParameters_->jetMETLSB();
 	if(value > 0xFF) {
 	  value = 0xFF;
 	}

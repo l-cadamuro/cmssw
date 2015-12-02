@@ -43,9 +43,16 @@ process.l1tSummary.sumToken  = cms.InputTag("simCaloStage2Digis");
 process.l1tSummary.muonToken = cms.InputTag("simGmtStage2Digis","");
 #process.l1tSummary.muonToken = cms.InputTag("simGmtStage2Digis","imdMuonsBMTF");
 
-process.load('L1Trigger.L1TCalorimeter.simCaloStage2Layer1Digis_cfi')
-process.simCaloStage2Layer1Digis.ecalToken = cms.InputTag("simEcalTriggerPrimitiveDigis")
-process.simCaloStage2Layer1Digis.hcalToken = cms.InputTag("simHcalTriggerPrimitiveDigis")
+#process.load('L1Trigger.L1TCalorimeter.simCaloStage2Layer1Digis_cfi')
+#process.simCaloStage2Layer1Digis.ecalToken = cms.InputTag("simEcalTriggerPrimitiveDigis")
+#process.simCaloStage2Layer1Digis.hcalToken = cms.InputTag("simHcalTriggerPrimitiveDigis")
+
+process.load('L1Trigger.L1TCaloLayer1.layer1EmulatorDigis_cfi')
+process.layer1EmulatorDigis.useLUT = cms.bool(False)
+process.layer1EmulatorDigis.useLSB = cms.bool(True)
+process.layer1EmulatorDigis.ecalTPSource = cms.InputTag("simEcalTriggerPrimitiveDigis")
+process.layer1EmulatorDigis.hcalTPSource = cms.InputTag("simHcalTriggerPrimitiveDigis")
+
 process.load('L1Trigger.L1TCalorimeter.simCaloStage2Digis_cfi')
 
 # Additional output definition

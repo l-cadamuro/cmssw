@@ -42,7 +42,8 @@ if eras.stage1L1Trigger.isChosen() and not eras.stage2L1Trigger.isChosen():
 #
 if eras.stage2L1Trigger.isChosen():
     print "L1TCalorimeter Sequence configured for Stage-2 (2016) trigger. "
-    from L1Trigger.L1TCalorimeter.simCaloStage2Layer1Digis_cfi import simCaloStage2Layer1Digis
+#    from L1Trigger.L1TCalorimeter.simCaloStage2Layer1Digis_cfi import simCaloStage2Layer1Digis
+    from L1Trigger.L1TCaloLayer1.layer1EmulatorDigis_cfi import layer1EmulatorDigis
     from L1Trigger.L1TCalorimeter.simCaloStage2Digis_cfi import simCaloStage2Digis
-    SimL1TCalorimeter = cms.Sequence( simCaloStage2Layer1Digis + simCaloStage2Digis )
+    SimL1TCalorimeter = cms.Sequence( layer1EmulatorDigis + simCaloStage2Digis )
 

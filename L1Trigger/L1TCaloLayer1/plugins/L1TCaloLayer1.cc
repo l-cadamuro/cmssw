@@ -80,6 +80,8 @@ private:
   std::vector< std::vector< std::vector < uint32_t > > > ecalLUT;
   std::vector< std::vector< std::vector < uint32_t > > > hcalLUT;
   
+  bool useLSB;
+  bool useLUT;
   bool verbose;
 
   UCTLayer1 *layer1;
@@ -105,6 +107,8 @@ L1TCaloLayer1::L1TCaloLayer1(const edm::ParameterSet& iConfig) :
   hcalTPSourceLabel(iConfig.getParameter<edm::InputTag>("hcalTPSource").label()),
   ecalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
   hcalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
+  useLSB(iConfig.getParameter<bool>("useLSB")),
+  useLUT(iConfig.getParameter<bool>("useLUT")),
   verbose(iConfig.getParameter<bool>("verbose")) 
 {
   produces<CaloTowerBxCollection>();
@@ -261,7 +265,7 @@ L1TCaloLayer1::endJob() {
 void
 L1TCaloLayer1::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
 {
-  if(!L1TCaloLayer1FetchLUTs(iSetup, ecalLUT, hcalLUT)) {
+  if(!L1TCaloLayer1FetchLUTs(iSetup, ecalLUT, hcalLUT, useLSB, useLUT)) {
     std::cerr << "beginRun: failed to fetch LUTS" << std::endl;
   }
   vector<UCTCrate*> crates = layer1->getCrates();
