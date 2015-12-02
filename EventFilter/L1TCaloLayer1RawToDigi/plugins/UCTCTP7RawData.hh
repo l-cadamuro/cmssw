@@ -4,7 +4,7 @@
 class UCTCTP7RawData {
 public:
 
-  enum CaloType {EBEE=0, HBHE, HF};
+  enum CaloType {EBEE=0, HBHE, HF, Region};
 
   UCTCTP7RawData(const uint32_t *d) : myDataPtr(d) {
     if(myDataPtr != 0) {
@@ -94,6 +94,14 @@ public:
 	}
       }
     }
+    else if(cType == Region) {
+      if(negativeEta) {
+	index = 2 + 2 * 14 * (3 + 3) + 4 * 4 + 4;
+      }
+      else {
+	index = 2 + 2 * 14 * (3 + 3) + 4 * 4;
+      }
+    }
     else {
       std::cerr << "Unknown CaloType " << cType << std::endl;
       return 0xDEADBEEF;
@@ -129,6 +137,8 @@ public:
       // Since there are three instead of if block as above for EBEE, HBHE
       // I wrote here a more compact implementation of index computation.
       index += (3 - ((cEta - 30) / 4));
+    }
+    else if(cType == Region) {
     }
     else {
       return 0xDEADBEEF;
@@ -216,6 +226,14 @@ public:
   bool isLinkMasked(CaloType cType, bool negativeEta, uint32_t cEta, uint32_t iPhi) {
     uint32_t linkStatus = getLinkStatus(cType, negativeEta, cEta, iPhi);
     return ((linkStatus & 0x00008000) != 0);
+  }
+
+  uint16_t getRegionData(bool negativeEta, uint32_t rEta) {
+    if(rEta > 7) return 0xBABE;
+    uint32_t offset = getIndex(Region, negativeEta, 0, 0) + (rEta / 2);
+    uint32_t shift = (rEta % 2) * 16;
+    uint32_t regionDatum = (myDataPtr[offset] >> shift) & 0xFFFF;
+    return regionDatum;
   }
 
   void print() {

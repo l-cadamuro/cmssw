@@ -50,6 +50,8 @@
 
 #include "DataFormats/HcalDetId/interface/HcalTrigTowerDetId.h"
 
+#include "DataFormats/L1CaloTrigger/interface/L1CaloCollections.h"
+
 #include "UCTDAQRawData.hh"
 #include "UCTAMCRawData.hh"
 #include "UCTCTP7RawData.hh"
@@ -75,6 +77,8 @@ private:
   void makeHCalTPGs(uint32_t lPhi, UCTCTP7RawData& ctp7Data, std::auto_ptr<HcalTrigPrimDigiCollection>& hcalTPGs);
 
   void makeHFTPGs(uint32_t lPhi, UCTCTP7RawData& ctp7Data, std::auto_ptr<HcalTrigPrimDigiCollection>& hfTPGs);
+
+  void makeRegions(uint32_t lPhi, UCTCTP7RawData& ctp7Data, std::auto_ptr<L1CaloRegionCollection>& caloRegions);
 
   //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
   //virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
@@ -114,6 +118,7 @@ L1TCaloLayer1RawToDigi::L1TCaloLayer1RawToDigi(const edm::ParameterSet& iConfig)
   produces<EcalTrigPrimDigiCollection>();
   produces<HcalTrigPrimDigiCollection>();
   produces<HcalTrigPrimDigiCollection>("hfTPGDigis");
+  produces<L1CaloRegionCollection>();
 
   consumes<FEDRawDataCollection>(fedRawDataLabel);
 
@@ -142,6 +147,7 @@ L1TCaloLayer1RawToDigi::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   std::auto_ptr<EcalTrigPrimDigiCollection> ecalTPGs(new EcalTrigPrimDigiCollection);
   std::auto_ptr<HcalTrigPrimDigiCollection> hcalTPGs(new HcalTrigPrimDigiCollection);
   std::auto_ptr<HcalTrigPrimDigiCollection> hfTPGs(new HcalTrigPrimDigiCollection);
+  std::auto_ptr<L1CaloRegionCollection> caloRegions(new L1CaloRegionCollection);
 
   // if raw data collection is present, check the headers and do the unpacking
   if (fedRawDataCollection.isValid()) {
@@ -174,6 +180,8 @@ L1TCaloLayer1RawToDigi::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 	makeHCalTPGs(lPhi, ctp7Data, hcalTPGs);
 	// Note: HF TPGs are separately put in event to avoid RCT gettting confused
 	makeHFTPGs(lPhi, ctp7Data, hfTPGs);
+	// Note: Regions are not quite the same as RCT regions - they are close; ET should be comparable
+	makeRegions(lPhi, ctp7Data, caloRegions);
       }
 
     }
@@ -189,6 +197,7 @@ L1TCaloLayer1RawToDigi::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.put(ecalTPGs);
   iEvent.put(hcalTPGs);
   iEvent.put(hfTPGs, "hfTPGDigis");
+  iEvent.put(caloRegions);
 
   event++;
   if(verbose && event == 5) cout << "L1TCaloLayer1RawToDigi: Goodbye! Tired of printing junk" << endl;
@@ -318,6 +327,23 @@ void L1TCaloLayer1RawToDigi::makeHFTPGs(uint32_t lPhi, UCTCTP7RawData& ctp7Data,
 	tpg.setSample(0, sample);
 	hfTPGs->push_back(tpg);
       }
+    }
+  }
+}
+
+void L1TCaloLayer1RawToDigi::makeRegions(uint32_t lPhi, UCTCTP7RawData& ctp7Data, std::auto_ptr<L1CaloRegionCollection>& caloRegions) {
+  for(uint32_t side = 0; side <= 1; side++) {
+    bool negativeEta = false;
+    if(side == 0) negativeEta = true;
+    for(uint32_t rEta = 0; rEta <= 6; rEta++) { // There are 7 regions on each side of the card
+      uint32_t gctPhi = lPhi;
+      uint32_t gctEta = rEta + 4;
+      if(!negativeEta) rEta += 7;
+      uint16_t regionDatum = ctp7Data.getRegionData(negativeEta, rEta);
+      L1CaloRegion caloRegion(regionDatum, false, false, false, false, gctEta, gctPhi);
+      // Note that the bottom 10 bits are ET in both RCT and Layer-1 
+      // overflow, tauVeto, mip, quiet bits have no interpretation
+      caloRegion.setRawData(regionDatum);
     }
   }
 }
