@@ -121,9 +121,11 @@ bool UCTRegion::setEventData(UCTTowerIndex t,
   return false;
 }
 
-void UCTRegion::print() {
-  if(negativeEta)
-    std::cout << "UCTRegion Summary for negative eta " << region << " summary = "<< std:: hex << regionSummary << std::endl;
+std::ostream& operator<<(std::ostream& os, const UCTRegion& r) {
+  if(r.negativeEta)
+    os << "UCTRegion Summary for negative eta " << r.region << " summary = "<< std:: hex << r.regionSummary << std::endl;
   else
-    std::cout << "UCTRegion Summary for positive eta " << region << " summary = "<< std:: hex << regionSummary << std::endl;
+    os << "UCTRegion Summary for positive eta " << r.region << " summary = "<< std:: hex << r.regionSummary << std::endl;
+
+  return os;
 }

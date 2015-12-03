@@ -78,7 +78,8 @@ const UCTCard* UCTCrate::getCard(UCTTowerIndex t) const {
   return cards[i];
 }
 
-void UCTCrate::print() {
-  if(crateSummary > 0) 
-    std::cout << "UCTCrate: crate = " << crate << "; Summary = " << crateSummary << std::endl;
+std::ostream& operator<<(std::ostream& os, const UCTCrate& cr) {
+  if(cr.crateSummary > 0) 
+    os << "UCTCrate: crate = " << cr.crate << "; Summary = " << cr.crateSummary << std::endl;
+  return os;
 }

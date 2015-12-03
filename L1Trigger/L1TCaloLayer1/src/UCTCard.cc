@@ -101,7 +101,8 @@ const UCTRegion* UCTCard::getRegion(bool nE, uint32_t cEta, uint32_t cPhi) const
   return regions[i];
 }
 
-void UCTCard::print() {
-  if(cardSummary > 0)
-    std::cout << "UCTCard: card = " << card << "; Summary = " << cardSummary << std::endl;
+std::ostream& operator<<(std::ostream& os, const UCTCard& c) {
+  if(c.cardSummary > 0)
+    os << "UCTCard: card = " << c.card << "; Summary = " << c.cardSummary << std::endl;
+  return os;
 }

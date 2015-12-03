@@ -37,7 +37,7 @@ public:
 
   const uint32_t et() const {return cardSummary;}
 
-  void print();
+  friend std::ostream& operator<<(std::ostream&, const UCTCard&);
 
 private:
 

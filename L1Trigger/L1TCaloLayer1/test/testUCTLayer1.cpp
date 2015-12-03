@@ -61,22 +61,20 @@ void print(UCTLayer1& uct) {
 	  int hitEta = regions[rgn]->hitCaloEta();
 	  int hitPhi = regions[rgn]->hitCaloPhi();
 	  vector<UCTTower*> towers = regions[rgn]->getTowers();
-	  bool header = true;
 	  for(uint32_t twr = 0; twr < towers.size(); twr++) {
 	    if(towers[twr]->caloPhi() == hitPhi && towers[twr]->caloEta() == hitEta) {
 	      std::cout << "*";
 	    }
-	    towers[twr]->print(header);
-	    if(header) header = false;
+	    std::cout << towers[twr];
 	  }
-	  regions[rgn]->print();
+	  std::cout << regions[rgn];
 	}
       }
-      cards[crd]->print();
+      std::cout << cards[crd];
     }
-    crates[crt]->print();
+    std::cout << crates[crt];
   }
-  uct.print();
+  std::cout << uct;
 }
 
 int main(int argc, char** argv) {

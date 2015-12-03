@@ -86,7 +86,7 @@ public:
     return getTower(t.first, t.second);
   }
 
-  void print();
+  friend std::ostream& operator<<(std::ostream&, const UCTRegion&);
   
 private:
 

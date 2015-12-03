@@ -42,7 +42,7 @@ public:
 
   const uint32_t et() const {return crateSummary;}
 
-  void print();
+  friend std::ostream& operator<<(std::ostream&, const UCTCrate&);
 
 private:
 

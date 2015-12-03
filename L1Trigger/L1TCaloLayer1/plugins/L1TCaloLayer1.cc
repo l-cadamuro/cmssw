@@ -68,7 +68,6 @@ private:
   //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
   //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
 
-  void print();
 
   // ----------member data ---------------------------
 
@@ -221,34 +220,7 @@ L1TCaloLayer1::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 }
 
-void L1TCaloLayer1::print() {
-  vector<UCTCrate*> crates = layer1->getCrates();
-  for(uint32_t crt = 0; crt < crates.size(); crt++) {
-    vector<UCTCard*> cards = crates[crt]->getCards();
-    for(uint32_t crd = 0; crd < cards.size(); crd++) {
-      vector<UCTRegion*> regions = cards[crd]->getRegions();
-      for(uint32_t rgn = 0; rgn < regions.size(); rgn++) {
-	if(regions[rgn]->et() > 0) {
-	  int hitEta = regions[rgn]->hitCaloEta();
-	  int hitPhi = regions[rgn]->hitCaloPhi();
-	  vector<UCTTower*> towers = regions[rgn]->getTowers();
-	  bool header = true;
-	  for(uint32_t twr = 0; twr < towers.size(); twr++) {
-	    if(towers[twr]->caloPhi() == hitPhi && towers[twr]->caloEta() == hitEta) {
-	      //	      std::cout << "*";
-	    }
-	    towers[twr]->print(header);
-	    if(header) header = false;
-	  }
-	  regions[rgn]->print();
-	}
-      }
-      cards[crd]->print();
-    }
-    crates[crt]->print();
-  }
-  layer1->print();
-}
+
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
