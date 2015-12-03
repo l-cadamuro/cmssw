@@ -124,7 +124,8 @@ bool UCTLayer1::process() {
   return true;
 }
 
-void UCTLayer1::print() {
-  std::cout << "UCTLayer1: Summary " << uctSummary << std::endl;
+std::ostream& operator<<(std::ostream& os, const UCTLayer1& l) {
+  os << "UCTLayer1: Summary " << l.uctSummary << std::endl;
+  return os;
 }
 

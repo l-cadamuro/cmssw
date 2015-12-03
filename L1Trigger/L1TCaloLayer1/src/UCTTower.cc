@@ -133,38 +133,40 @@ const uint64_t UCTTower::extendedData() const {
   return r;
 }
 
-void UCTTower::print(bool header) {
-  if((ecalET + hcalET) == 0) return;
-  if(header) {
-    std::cout << "Side Crt  Crd  Rgn  iEta iPhi cEta cPhi eET  eFG  hET  hFB  Summary" << std::endl;
-  }
+std::ostream& operator<<(std::ostream& os, const UCTTower& t) {
+  if((t.ecalET + t.hcalET) == 0) return os;
+  
+  os << "Side Crt  Crd  Rgn  iEta iPhi cEta cPhi eET  eFG  hET  hFB  Summary" << std::endl;
+
   UCTGeometry g;
   std::string side = "+eta ";
-  if(negativeEta) side = "-eta ";
-  std::cout << side
-	    << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
-	    << crate << " "
-	    << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
-	    << card << " "
-	    << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
-	    << region << " "
-	    << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
-	    << iEta << " "
-	    << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
-	    << iPhi << " "
-	    << std::setw(4) << std::dec
-	    << g.getCaloEtaIndex(negativeEta, region, iEta) << " "
-	    << std::setw(4) << std::dec
-	    << g.getCaloPhiIndex(crate, card, region, iPhi) << " "
-	    << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
-	    << ecalET << " "
-	    << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
-	    << ecalFG << " "
-	    << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
-	    << hcalET << " "
-	    << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
-	    << hcalFB << " "
-	    << std::showbase << std::internal << std::setfill('0') << std::setw(10) << std::hex
-	    << towerData
-	    << std::endl;
+  if(t.negativeEta) side = "-eta ";
+  os << side
+     << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
+     << t.crate << " "
+     << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
+     << t.card << " "
+     << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
+     << t.region << " "
+     << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
+     << t.iEta << " "
+     << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
+     << t.iPhi << " "
+     << std::setw(4) << std::dec
+     << g.getCaloEtaIndex(t.negativeEta, t.region, t.iEta) << " "
+     << std::setw(4) << std::dec
+     << g.getCaloPhiIndex(t.crate, t.card, t.region, t.iPhi) << " "
+     << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
+     << t.ecalET << " "
+     << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
+     << t.ecalFG << " "
+     << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
+     << t.hcalET << " "
+     << std::showbase << std::internal << std::setfill('0') << std::setw(4) << std::hex
+     << t.hcalFB << " "
+     << std::showbase << std::internal << std::setfill('0') << std::setw(10) << std::hex
+     << t.towerData
+     << std::endl;
+  return os;
+
 }

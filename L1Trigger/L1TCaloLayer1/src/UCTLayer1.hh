@@ -39,7 +39,7 @@ public:
   uint32_t getSummary() {return uctSummary;}
   uint32_t et() {return uctSummary;}
 
-  void print();
+  friend std::ostream& operator<<(std::ostream&, const UCTLayer1&);
 
 private:
 
