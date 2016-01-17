@@ -10,11 +10,27 @@
 
 #include "L1Trigger/L1TCalorimeter/interface/CaloStage2Nav.h"
 #include "L1Trigger/L1TCalorimeter/interface/CaloTools.h"
+#include "L1Trigger/L1TCalorimeter/interface/BitonicSort.h"
 
+
+
+namespace l1t {
+  bool operator > ( l1t::EGamma& a, l1t::EGamma& b )
+  {
+    if ( a.pt() == b.pt() ){
+      if( a.hwPhi() == b.hwPhi() )
+	return abs(a.hwEta()) > abs(b.hwEta());
+      else
+	return a.hwPhi() > b.hwPhi();
+    }
+    else
+      return a.pt() > b.pt();
+  }
+}
 
 
 /*****************************************************************/
-l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::Stage2Layer2EGammaAlgorithmFirmwareImp1(CaloParams* params) :
+l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::Stage2Layer2EGammaAlgorithmFirmwareImp1(CaloParamsHelper* params) :
   params_(params)
 /*****************************************************************/
 {
@@ -22,22 +38,26 @@ l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::Stage2Layer2EGammaAlgorithmFirmwar
 }
 
 /*****************************************************************/
-l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::~Stage2Layer2EGammaAlgorithmFirmwareImp1() 
+l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::~Stage2Layer2EGammaAlgorithmFirmwareImp1()
 /*****************************************************************/
 {
 }
 
 /*****************************************************************/
-void l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::processEvent(const std::vector<l1t::CaloCluster>& clusters, const std::vector<l1t::CaloTower>& towers, std::vector<l1t::EGamma>& egammas) 
+void l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::processEvent(const std::vector<l1t::CaloCluster>& clusters, const std::vector<l1t::CaloTower>& towers, std::vector<l1t::EGamma>& egammas)
 /*****************************************************************/
 {
   l1t::CaloStage2Nav caloNav;
   egammas.clear();
+
+  //EGammas without check of FG and shape ID
+  std::vector<l1t::EGamma> egammas_raw; 
+
   for(const auto& cluster : clusters)
   {
     // Keep only valid clusters
     if(cluster.isValid())
-    { 
+    {
       // need tower energies to recompute egamma trimmed energy
       int iEta = cluster.hwEta();
       int iPhi = cluster.hwPhi();
@@ -59,21 +79,26 @@ void l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::processEvent(const std::vecto
       const l1t::CaloTower& towerNN = l1t::CaloTools::getTower(towers, iEta , iPhiM2);
       const l1t::CaloTower& towerSS = l1t::CaloTools::getTower(towers, iEta , iPhiP2);
       //
-      int seedEt    = seed   .hwEtEm();
-      int towerEtNW = towerNW.hwEtEm();
-      int towerEtN  = towerN .hwEtEm();
-      int towerEtNE = towerNE.hwEtEm();
-      int towerEtE  = towerE .hwEtEm();
-      int towerEtSE = towerSE.hwEtEm();
-      int towerEtS  = towerS .hwEtEm();
-      int towerEtSW = towerSW.hwEtEm();
-      int towerEtW  = towerW .hwEtEm();
-      int towerEtNN = towerNN.hwEtEm();
-      int towerEtSS = towerSS.hwEtEm(); 
+
+      int seedEt    = seed   .hwPt();
+      int towerEtNW = towerNW.hwPt();
+      int towerEtN  = towerN .hwPt();
+      int towerEtNE = towerNE.hwPt();
+      int towerEtE  = towerE .hwPt();
+      int towerEtSE = towerSE.hwPt();
+      int towerEtS  = towerS .hwPt();
+      int towerEtSW = towerSW.hwPt();
+      int towerEtW  = towerW .hwPt();
+      int towerEtNN = towerNN.hwPt();
+      int towerEtSS = towerSS.hwPt();
+
+
+      if(abs(iEta)>28)
+	continue;
 
       // initialize egamma from cluster
-      egammas.push_back(cluster);
-      l1t::EGamma& egamma = egammas.back();
+      egammas_raw.push_back(cluster);
+      l1t::EGamma& egamma = egammas_raw.back();     
 
       // Trim cluster (only for egamma energy computation, the original cluster is unchanged)
       l1t::CaloCluster clusterTrim = trimCluster(cluster);
@@ -96,19 +121,33 @@ void l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::processEvent(const std::vecto
       // Based on the seed tower FG bit, the H/E ratio of the seed toswer, and the shape of the cluster
       bool hOverEBit = idHOverE(cluster, egamma.hwPt());
       bool shapeBit  = idShape(cluster, egamma.hwPt());
-      bool fgBit     = !(cluster.hwSeedPt()>6 && cluster.fgECAL()); 
+      bool fgBit     = !(cluster.hwSeedPt()>6 && cluster.fgECAL());
       int qual = 0;
       if(fgBit)     qual |= (0x1); // first bit = FG
       if(hOverEBit) qual |= (0x1<<1); // second bit = H/E
       if(shapeBit)  qual |= (0x1<<2); // third bit = shape
-      egamma.setHwQual( qual ); 
-
+      egamma.setHwQual( qual );
 
       // Isolation 
-      int hwEtSum = CaloTools::calHwEtSum(cluster.hwEta(), cluster.hwPhi(), towers,
+      /*int hwEtSum = CaloTools::calHwEtSum(cluster.hwEta(), cluster.hwPhi(), towers,
           -1*params_->egIsoAreaNrTowersEta(),params_->egIsoAreaNrTowersEta(),
           -1*params_->egIsoAreaNrTowersPhi(),params_->egIsoAreaNrTowersPhi(),
-          params_->egPUSParam(2));
+          params_->egPUSParam(2));*/
+
+      int isoLeftExtension = params_->egIsoAreaNrTowersEta();
+      int isoRightExtension = params_->egIsoAreaNrTowersEta();
+
+      if(cluster.checkClusterFlag(CaloCluster::TRIM_LEFT))
+	isoRightExtension++;
+      else
+	isoLeftExtension++;
+
+      int hwEtSum = CaloTools::calHwEtSum(cluster.hwEta(), cluster.hwPhi(), towers,
+					  -isoLeftExtension,isoRightExtension,
+					  -1*params_->egIsoAreaNrTowersPhi(),params_->egIsoAreaNrTowersPhi(),
+					  params_->egPUSParam(2));
+
+
       int hwFootPrint = isoCalEgHwFootPrint(cluster,towers);
 
       int nrTowers = CaloTools::calNrTowers(-1*params_->egPUSParam(1),
@@ -116,7 +155,7 @@ void l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::processEvent(const std::vecto
           1,72,towers,1,999,CaloTools::CALO);
       unsigned int lutAddress = isoLutIndex(egamma.hwEta(), nrTowers);
 
-      int isolBit = hwEtSum-hwFootPrint <= params_->egIsolationLUT()->data(lutAddress); 
+      int isolBit = hwEtSum-hwFootPrint <= params_->egIsolationLUT()->data(lutAddress);
       // std::cout <<"hwEtSum "<<hwEtSum<<" hwFootPrint "<<hwFootPrint<<" isol "<<hwEtSum-hwFootPrint<<" bit "<<isolBit<<" area "<<params_->egIsoAreaNrTowersEta()<<" "<<params_->egIsoAreaNrTowersPhi()<< " veto "<<params_->egIsoVetoNrTowersPhi()<<std::endl;
 
       egamma.setHwIso(isolBit);
@@ -125,6 +164,7 @@ void l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::processEvent(const std::vecto
       // Energy calibration
       // Corrections function of ieta, ET, and cluster shape
       int calibPt = calibratedPt(cluster, egamma.hwPt());
+      egamma.setHwPt(calibPt);
 
       // Physical eta/phi. Computed from ieta/iphi of the seed tower and the fine-grain position within the seed
       double eta = 0.;
@@ -134,11 +174,33 @@ void l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::processEvent(const std::vecto
       double seedPhi     = CaloTools::towerPhi(cluster.hwEta(), cluster.hwPhi());
       double seedPhiSize = CaloTools::towerPhiSize(cluster.hwEta());
       if(cluster.fgEta()==0)      eta = seedEta; // center
-      else if(cluster.fgEta()==2) eta = seedEta + seedEtaSize*0.25; // center + 1/4
-      else if(cluster.fgEta()==1) eta = seedEta - seedEtaSize*0.25; // center - 1/4
-      if(cluster.fgPhi()==0)      phi = seedPhi; // center
-      else if(cluster.fgPhi()==2) phi = seedPhi + seedPhiSize*0.25; // center + 1/4
-      else if(cluster.fgPhi()==1) phi = seedPhi - seedPhiSize*0.25; // center - 1/4
+      //Test
+      else if(cluster.fgEta()==2) eta = seedEta + seedEtaSize*0.251; // center + 1/4
+      else if(cluster.fgEta()==1) eta = seedEta - seedEtaSize*0.251; // center - 1/4
+
+
+      //fgPhi is recomputed after trimming
+      int fgPhi = 0;
+      
+      int EtUp   = 0;
+      if(clusterTrim.checkClusterFlag(CaloCluster::INCLUDE_NE)) EtUp += towerEtNE;
+      if(clusterTrim.checkClusterFlag(CaloCluster::INCLUDE_N))  EtUp += towerEtN;
+      if(clusterTrim.checkClusterFlag(CaloCluster::INCLUDE_NW)) EtUp += towerEtNW;
+      if(clusterTrim.checkClusterFlag(CaloCluster::INCLUDE_NN)) EtUp += towerEtNN;
+      int EtDown = 0;
+      if(clusterTrim.checkClusterFlag(CaloCluster::INCLUDE_SE)) EtDown += towerEtSE;
+      if(clusterTrim.checkClusterFlag(CaloCluster::INCLUDE_S))  EtDown += towerEtS;
+      if(clusterTrim.checkClusterFlag(CaloCluster::INCLUDE_SW)) EtDown += towerEtSW;
+      if(clusterTrim.checkClusterFlag(CaloCluster::INCLUDE_SS)) EtDown += towerEtSS;
+      //
+      if(EtDown>EtUp) fgPhi = 2;
+      else if(EtUp>EtDown) fgPhi = 1;
+
+
+      if(fgPhi==0)      phi = seedPhi; // center
+      else if(fgPhi==2) phi = seedPhi + seedPhiSize*0.251; // center + 1/4
+      else if(fgPhi==1) phi = seedPhi - seedPhiSize*0.251; // center - 1/4
+      
 
       // Set 4-vector
       math::PtEtaPhiMLorentzVector calibP4((double)calibPt*params_->egLsb(), eta, phi, 0.);
@@ -146,13 +208,48 @@ void l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::processEvent(const std::vecto
 
     }//end of cuts on cluster to make EGamma
   }//end of cluster loop
+
+  
+  //Keep only candidates which passes the FG veto and the shape ID
+  std::vector<l1t::EGamma> egammas_eta_neg;  
+  std::vector<l1t::EGamma> egammas_eta_pos;
+
+  for(const auto& egamma : egammas_raw){
+
+    int fgBit = egamma.hwQual() & (0x1);
+    int shapeBit = egamma.hwQual()>>2 & (0x1);
+    if(fgBit && shapeBit){
+      if(egamma.hwEta()<0)
+	egammas_eta_neg.push_back(egamma);
+      else
+	egammas_eta_pos.push_back(egamma);
+    }
+  }
+
+
+ //Keep only 6 candidate with highest Pt in each eta-half
+  std::vector<l1t::EGamma>::iterator start_, end_;
+
+  start_ = egammas_eta_pos.begin();  
+  end_   = egammas_eta_pos.end();
+  BitonicSort<l1t::EGamma>(down, start_, end_);
+  if (egammas_eta_pos.size()>6) egammas_eta_pos.resize(6);
+
+  start_ = egammas_eta_neg.begin();  
+  end_   = egammas_eta_neg.end();
+  BitonicSort<l1t::EGamma>(down, start_, end_);
+  if (egammas_eta_neg.size()>6) egammas_eta_neg.resize(6);
+
+  egammas = egammas_eta_pos;
+  egammas.insert(egammas.end(),egammas_eta_neg.begin(),egammas_eta_neg.end());
+
 }
 
 /*****************************************************************/
 bool l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::idHOverE(const l1t::CaloCluster& clus, int hwPt)
 /*****************************************************************/
 {
-  unsigned int lutAddress = idHOverELutIndex(clus.hwEta(), hwPt); 
+  unsigned int lutAddress = idHOverELutIndex(clus.hwEta(), hwPt);
   bool hOverEBit = ( clus.hOverE() <= params_->egMaxHOverELUT()->data(lutAddress) );
   hOverEBit |= ( clus.hwPt()>=floor(params_->egMaxPtHOverE()/params_->egLsb()) );
   return hOverEBit;
@@ -184,7 +281,7 @@ bool l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::idShape(const l1t::CaloCluste
   if( clus.checkClusterFlag(CaloCluster::INCLUDE_NN) ) shape |= (0x1<<5);
   if( clus.checkClusterFlag(CaloCluster::INCLUDE_SS) ) shape |= (0x1<<6);
 
-  unsigned int lutAddress = idShapeLutIndex(clus.hwEta(), hwPt, shape); 
+  unsigned int lutAddress = idShapeLutIndex(clus.hwEta(), hwPt, shape);
   bool shapeBit = params_->egShapeIdLUT()->data(lutAddress);
   return shapeBit;
 }
@@ -193,16 +290,29 @@ bool l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::idShape(const l1t::CaloCluste
 unsigned int l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::idShapeLutIndex(int iEta, int E, int shape)
 /*****************************************************************/
 {
-  unsigned int iEtaNormed = abs(iEta);
-  if(iEtaNormed>28) iEtaNormed = 28;
-  if(E>255) E = 255;
-  unsigned int compressedShape = params_->egCompressShapesLUT()->data(shape);
-  return E+compressedShape*256+(iEtaNormed-1)*256*64;
+  if(params_->egShapeIdType()=="compressed")
+  {
+    unsigned int iEtaNormed = abs(iEta);
+    if(iEtaNormed>28) iEtaNormed = 28;
+    if(E>255) E = 255;
+    unsigned int compressedShape = params_->egCompressShapesLUT()->data(shape);
+    unsigned int compressedE     = params_->egCompressShapesLUT()->data((0x1<<7)+E);
+    unsigned int compressedEta   = params_->egCompressShapesLUT()->data((0x1<<7)+(0x1<<8)+iEtaNormed);
+    return (compressedShape | compressedE | compressedEta);
+  }
+  else // Uncompressed (kept for backward compatibility)
+  {
+    unsigned int iEtaNormed = abs(iEta);
+    if(iEtaNormed>28) iEtaNormed = 28;
+    if(E>255) E = 255;
+    unsigned int compressedShape = params_->egCompressShapesLUT()->data(shape);
+    return E+compressedShape*256+(iEtaNormed-1)*256*64;
+  }
 }
 
 //calculates the footprint of the electron in hardware values
 /*****************************************************************/
-int l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::isoCalEgHwFootPrint(const l1t::CaloCluster& clus,const std::vector<l1t::CaloTower>& towers) 
+int l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::isoCalEgHwFootPrint(const l1t::CaloCluster& clus,const std::vector<l1t::CaloTower>& towers)
 /*****************************************************************/
 {
   int iEta=clus.hwEta();
@@ -232,7 +342,7 @@ unsigned l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::isoLutIndex(int iEta,unsi
 {
   const unsigned int kNrTowersInSum=72*params_->egPUSParam(1)*2;
   const unsigned int kTowerGranularity=params_->egPUSParam(0);
-  const unsigned int kMaxAddress = kNrTowersInSum%kTowerGranularity==0 ? (kNrTowersInSum/kTowerGranularity+1)*28*2 : 
+  const unsigned int kMaxAddress = kNrTowersInSum%kTowerGranularity==0 ? (kNrTowersInSum/kTowerGranularity+1)*28*2 :
     (kNrTowersInSum/kTowerGranularity)*28*2;
 
   unsigned int nrTowersNormed = nrTowers/kTowerGranularity;
@@ -261,17 +371,18 @@ int l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::calibratedPt(const l1t::CaloCl
   if( clus.checkClusterFlag(CaloCluster::INCLUDE_NN) ) shape |= (0x1<<5);
   if( clus.checkClusterFlag(CaloCluster::INCLUDE_SS) ) shape |= (0x1<<6);
 
-  unsigned int lutAddress = calibrationLutIndex(clus.hwEta(), hwPt, shape); 
+  unsigned int lutAddress = calibrationLutIndex(clus.hwEta(), hwPt, shape);
   int corr = params_->egCalibrationLUT()->data(lutAddress); // 9 bits. [0,1]. corrPt = (1+corr)*rawPt
   // the correction can only increase the energy, and it cannot increase it more than a factor two
   int rawPt = hwPt;
+  if(rawPt>255)
+    rawPt = 255;// 8 bits threshold
   int corrXrawPt = corr*rawPt;// 17 bits
   // round corr*rawPt
   int addPt = corrXrawPt>>9;// 8 MS bits (truncation)
-  int remainder = corrXrawPt & 0x1FF; // 9 LS bits
-  if(remainder>=0x100) addPt += 1;
   int corrPt = rawPt + addPt;
-  if(corrPt>255) corrPt = 255;// 8 bits threshold
+  //Saturation done in Demux
+  //if(corrPt>255) corrPt = 255;// 8 bits threshold
   return corrPt;
 }
 
@@ -279,13 +390,26 @@ int l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::calibratedPt(const l1t::CaloCl
 unsigned int l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::calibrationLutIndex(int iEta, int E, int shape)
 /*****************************************************************/
 {
-  unsigned int iEtaNormed = abs(iEta);
-  if(iEtaNormed>28) iEtaNormed = 28;
-  if(E>255) E = 255;
-  if(E<22) E = 22;
-  unsigned int compressedShape = params_->egCompressShapesLUT()->data(shape);
-  if(compressedShape>31) compressedShape = 31;
-  return (E-20)+compressedShape*236+(iEtaNormed-1)*236*32;
+  if(params_->egCalibrationType()=="compressed")
+  {
+    unsigned int iEtaNormed = abs(iEta);
+    if(iEtaNormed>28) iEtaNormed = 28;
+    if(E>255) E = 255;
+    unsigned int compressedShape = params_->egCompressShapesLUT()->data(shape);
+    unsigned int compressedE     = params_->egCompressShapesLUT()->data((0x1<<7)+E);
+    unsigned int compressedEta   = params_->egCompressShapesLUT()->data((0x1<<7)+(0x1<<8)+iEtaNormed);
+    return (compressedShape | compressedE | compressedEta);
+  }
+  else // Uncompressed (kept for backward compatibility)
+  {
+    unsigned int iEtaNormed = abs(iEta);
+    if(iEtaNormed>28) iEtaNormed = 28;
+    if(E>255) E = 255;
+    if(E<22) E = 22;
+    unsigned int compressedShape = params_->egCompressShapesLUT()->data(shape);
+    if(compressedShape>31) compressedShape = 31;
+    return (E-20)+compressedShape*236+(iEtaNormed-1)*236*32;
+  }
 }
 
 /*****************************************************************/
@@ -306,10 +430,10 @@ l1t::CaloCluster l1t::Stage2Layer2EGammaAlgorithmFirmwareImp1::trimCluster(const
   if( clus.checkClusterFlag(CaloCluster::INCLUDE_NN) ) shape |= (0x1<<5);
   if( clus.checkClusterFlag(CaloCluster::INCLUDE_SS) ) shape |= (0x1<<6);
 
-  unsigned int lutAddress = trimmingLutIndex(shape, clus.hwEta()); 
+  unsigned int lutAddress = trimmingLutIndex(shape, clus.hwEta());
   unsigned int shapeTrim = params_->egTrimmingLUT()->data(lutAddress);
   // apply trimming flags
-  clusCopy.setClusterFlag(CaloCluster::INCLUDE_N,  ( shapeTrim&(0x1) )    ? true : false); 
+  clusCopy.setClusterFlag(CaloCluster::INCLUDE_N,  ( shapeTrim&(0x1) )    ? true : false);
   clusCopy.setClusterFlag(CaloCluster::INCLUDE_S,  ( shapeTrim&(0x1<<1) ) ? true : false);
   clusCopy.setClusterFlag(CaloCluster::INCLUDE_NN, ( shapeTrim&(0x1<<5) ) ? true : false);
   clusCopy.setClusterFlag(CaloCluster::INCLUDE_SS, ( shapeTrim&(0x1<<6) ) ? true : false);

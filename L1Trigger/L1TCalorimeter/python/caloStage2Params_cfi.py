@@ -12,7 +12,7 @@ caloStage2Params.towerNBitsH      = cms.int32(8)
 caloStage2Params.towerNBitsE      = cms.int32(8)
 caloStage2Params.towerNBitsSum    = cms.int32(9)
 caloStage2Params.towerNBitsRatio  = cms.int32(3)
-caloStage2Params.towerEncoding    = cms.bool(False)
+caloStage2Params.towerEncoding    = cms.bool(True)
 
 # regions
 caloStage2Params.regionLsb        = cms.double(0.5)
@@ -28,8 +28,10 @@ caloStage2Params.egTrimmingLUTFile          = cms.FileInPath("L1Trigger/L1TCalor
 caloStage2Params.egMaxHcalEt                = cms.double(0.)
 caloStage2Params.egMaxPtHOverE          = cms.double(128.)
 caloStage2Params.egMaxHOverELUTFile         = cms.FileInPath("L1Trigger/L1TCalorimeter/data/egMaxHOverELUT_995eff.txt")
-caloStage2Params.egCompressShapesLUTFile    = cms.FileInPath("L1Trigger/L1TCalorimeter/data/egCompressShapesLUT.txt")
-caloStage2Params.egShapeIdLUTFile           = cms.FileInPath("L1Trigger/L1TCalorimeter/data/egShapeIdLUT_995eff.txt")
+caloStage2Params.egCompressShapesLUTFile    = cms.FileInPath("L1Trigger/L1TCalorimeter/data/egCompressLUT_v1.txt")
+caloStage2Params.egShapeIdType              = cms.string("compressed")
+caloStage2Params.egShapeIdVersion           = cms.uint32(0)
+caloStage2Params.egShapeIdLUTFile           = cms.FileInPath("L1Trigger/L1TCalorimeter/data/shapeIdentification_0.99_compressedieta_compressedE_compressedshape_v15.10.20.txt")
 caloStage2Params.egPUSType                  = cms.string("None")
 caloStage2Params.egIsoLUTFile               = cms.FileInPath("L1Trigger/L1TCalorimeter/data/egIsoLUTPU40bx25NrRings4Eff95.txt")
 caloStage2Params.egIsoAreaNrTowersEta       = cms.uint32(2)
@@ -38,9 +40,10 @@ caloStage2Params.egIsoVetoNrTowersPhi       = cms.uint32(3)
 #caloStage2Params.egIsoPUEstTowerGranularity = cms.uint32(1)
 #caloStage2Params.egIsoMaxEtaAbsForTowerSum  = cms.uint32(4)
 #caloStage2Params.egIsoMaxEtaAbsForIsoSum    = cms.uint32(27)
-caloStage2Params.egPUSParams                = cms.vdouble(1,4,27)
-
-caloStage2Params.egCalibrationLUTFile       = cms.FileInPath("L1Trigger/L1TCalorimeter/data/egCalibrationLUT_Trimming5.txt")
+caloStage2Params.egPUSParams                = cms.vdouble(1,4,32) #Isolation window in firmware goes up to abs(ieta)=32 for now
+caloStage2Params.egCalibrationType          = cms.string("compressed")
+caloStage2Params.egCalibrationVersion       = cms.uint32(0)
+caloStage2Params.egCalibrationLUTFile       = cms.FileInPath("L1Trigger/L1TCalorimeter/data/corrections_Trimming5_PU40bx25_compressedieta_compressedE_compressedshape_v15.10.20.txt")
 
 # Tau
 caloStage2Params.tauLsb                        = cms.double(0.5)
@@ -56,7 +59,7 @@ caloStage2Params.tauPUSParams                  = cms.vdouble(1,4,27)
 
 # jets
 caloStage2Params.jetLsb                = cms.double(0.5)
-caloStage2Params.jetSeedThreshold      = cms.double(0.)
+caloStage2Params.jetSeedThreshold      = cms.double(1.5)
 caloStage2Params.jetNeighbourThreshold = cms.double(0.)
 caloStage2Params.jetPUSType            = cms.string("ChunkyDonut")
 
