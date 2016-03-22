@@ -9,8 +9,16 @@
 #define RegionETMask  0x000003FF
 #define RegionEGVeto  0x00000400
 #define RegionTauVeto 0x00000800
-#define RegionLocBits 0x0000F000
+#define HitTowerBits  0x0000F000
+#define RegionNoBits  0x000F0000
+#define CardNoBits    0x00700000
+#define CrateNoBits   0x01800000
+#define NegEtaBit     0x80000000
+#define LocationBits  0xFFFFF000
 #define LocationShift 12
+#define RegionNoShift 16
+#define CardNoShift   20
+#define CrateNoShift  23
 
 class UCTRegion {
 public:
@@ -33,10 +41,10 @@ public:
   // Packed data access
 
   const uint32_t rawData() const {return regionSummary;}
-  const uint32_t location() const {return ((regionSummary & RegionLocBits) >> LocationShift);}
+  const uint32_t location() const {return ((regionSummary & LocationBits) >> LocationShift);}
 
   const int hitCaloEta() const {
-    uint32_t highestTowerLocation = location();
+    uint32_t highestTowerLocation = (location() & 0xF);
     return towers[highestTowerLocation]->caloEta();
   }
 
