@@ -23,7 +23,6 @@
 
 // user include files
 #include "L1Trigger/L1TGlobal/interface/GtCondition.h"
-#include "CondFormats/L1TObjects/interface/L1GtAlgorithm.h"
 
 
 // forward declarations
@@ -66,6 +65,7 @@ TriggerMenu::TriggerMenu(
 {
 
     m_conditionMap.resize(numberConditionChips);
+    m_triggerMenuUUID = 0;
     buildGtConditionMap();
 
 }
@@ -78,6 +78,7 @@ TriggerMenu::TriggerMenu(const TriggerMenu& rhs)
     m_triggerMenuName = rhs.m_triggerMenuName;
     m_triggerMenuImplementation = rhs.m_triggerMenuImplementation;
     m_scaleDbKey = rhs.m_scaleDbKey ;
+    m_triggerMenuUUID = rhs.m_triggerMenuUUID;
 
     // copy physics conditions
     m_vecMuonTemplate = rhs.m_vecMuonTemplate;
@@ -129,6 +130,7 @@ TriggerMenu& TriggerMenu::operator=(const TriggerMenu& rhs) {
         m_triggerMenuInterface = rhs.m_triggerMenuInterface;
         m_triggerMenuName = rhs.m_triggerMenuName;
         m_triggerMenuImplementation = rhs.m_triggerMenuImplementation;
+	m_triggerMenuUUID = rhs.m_triggerMenuUUID;
 
         m_vecMuonTemplate = rhs.m_vecMuonTemplate;
         m_vecCaloTemplate = rhs.m_vecCaloTemplate;
@@ -315,6 +317,11 @@ void TriggerMenu::setGtTriggerMenuImplementation(const std::string& menuImplemen
     m_triggerMenuImplementation = menuImplementation;
 }
 
+void TriggerMenu::setGtTriggerMenuUUID(const int uuid) {
+    m_triggerMenuUUID = uuid;
+}
+
+
 // set menu associated scale key
 void TriggerMenu::setGtScaleDbKey(const std::string& scaleKey) {
     m_scaleDbKey = scaleKey;
@@ -399,10 +406,10 @@ void TriggerMenu::setGtTechnicalTriggerMap(const l1t::AlgorithmMap& ttMap) {
 // print the trigger menu (bit number, algorithm name, logical expression)
 void TriggerMenu::print(std::ostream& myCout, int& printVerbosity) const {
 
-    // use another map <int, L1GtAlgorithm> to get the menu sorted after bit number
+    // use another map <int, GtAlgorithm> to get the menu sorted after bit number
     // both algorithm and bit numbers are unique
-    std::map<int, const L1GtAlgorithm*> algoBitToAlgo;
-    typedef std::map<int, const L1GtAlgorithm*>::const_iterator CItBit;
+    std::map<int, const GtAlgorithm*> algoBitToAlgo;
+    typedef std::map<int, const GtAlgorithm*>::const_iterator CItBit;
 
     for (l1t::CItAlgo itAlgo = m_algorithmMap.begin(); itAlgo != m_algorithmMap.end(); itAlgo++) {
 
@@ -414,7 +421,7 @@ void TriggerMenu::print(std::ostream& myCout, int& printVerbosity) const {
 
 /*
     // idem for technical trigger map - only name and bit number are relevant for them
-    std::map<int, const L1GtAlgorithm*> ttBitToTt;
+    std::map<int, const GtAlgorithm*> ttBitToTt;
 
     for (l1t::CItAlgo itAlgo = m_technicalTriggerMap.begin(); itAlgo
             != m_technicalTriggerMap.end(); itAlgo++) {

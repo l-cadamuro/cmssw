@@ -76,8 +76,7 @@ process.maxEvents = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
     fileNames = cms.untracked.vstring(
-        #"/store/user/puigh/L1Upgrade/GEN-SIM-DIGI-RAW-HLTDEBUG/CMSSW_7_6_0/4C462F65-9F7F-E511-972A-0026189438A9.root",
-        "/store/relval/CMSSW_7_6_0_pre7/RelValTTbar_13/GEN-SIM/76X_mcRun2_asymptotic_v9_realBS-v1/00000/0A812333-427C-E511-A80A-0025905964A2.root",
+        "/store/user/puigh/L1Upgrade/GEN-SIM-DIGI-RAW-HLTDEBUG/CMSSW_7_6_0/4C462F65-9F7F-E511-972A-0026189438A9.root",
         #"root://xrootd.ba.infn.it//store/relval/CMSSW_7_6_0/RelValTTbar_13/GEN-SIM-DIGI-RAW-HLTDEBUG/76X_mcRun2_asymptotic_v11-v1/00000/4C462F65-9F7F-E511-972A-0026189438A9.root",
         #"root://xrootd.ba.infn.it//store/relval/CMSSW_7_6_0/RelValTTbar_13/GEN-SIM-DIGI-RAW-HLTDEBUG/76X_mcRun2_asymptotic_v11-v1/00000/703E7EAB-9D7F-E511-B886-003048FFCBFC.root",
         #"root://xrootd.ba.infn.it//store/relval/CMSSW_7_6_0/RelValTTbar_13/GEN-SIM-DIGI-RAW-HLTDEBUG/76X_mcRun2_asymptotic_v11-v1/00000/8AF07AAB-9D7F-E511-B8B4-003048FFCBFC.root",
@@ -184,6 +183,8 @@ process.load('L1Trigger.L1TGlobal.StableParameters_cff')
 
 process.load("L1Trigger.L1TGlobal.TriggerMenu_cff")
 process.TriggerMenu.L1TriggerMenuFile = cms.string('L1Menu_Collisions2016_dev_v3.xml')
+#process.TriggerMenu.L1TriggerMenuFile = cms.string('L1Menu_Collisions2015_25nsStage1_v7_uGT.xml')
+
 #process.menuDumper = cms.EDAnalyzer("L1TUtmTriggerMenuDumper")
 
 ## Fill External conditions
@@ -200,15 +201,8 @@ process.simGtExtFakeProd.setBptxOR    = cms.bool(True)
 process.load('L1Trigger.L1TGlobal.simGtStage2Digis_cfi')
 process.simGtStage2Digis.PrescaleCSVFile = cms.string('prescale_L1TGlobal.csv')
 process.simGtStage2Digis.PrescaleSet = cms.uint32(1)
-process.simGtStage2Digis.ExtInputTag = cms.InputTag("simGtExtFakeProd")
-process.simGtStage2Digis.MuonInputTag = cms.InputTag("gtInput")
-process.simGtStage2Digis.EGammaInputTag = cms.InputTag("gtInput")
-process.simGtStage2Digis.TauInputTag = cms.InputTag("gtInput")
-process.simGtStage2Digis.JetInputTag = cms.InputTag("gtInput")
-process.simGtStage2Digis.EtSumInputTag = cms.InputTag("gtInput")
-
-
-#process.simGlobalStage2Digis.Verbosity = cms.untracked.int32(1)
+process.simGtStage2Digis.extInputTag = cms.InputTag("simGtExtFakeProd")
+#process.simGtStage2Digis.Verbosity = cms.untracked.int32(1)
 
 
 process.dumpGTRecord = cms.EDAnalyzer("l1t::GtRecordDump",
