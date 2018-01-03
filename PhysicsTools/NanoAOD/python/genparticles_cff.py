@@ -42,9 +42,26 @@ genParticleTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
          phi = Var("phi", float,precision=8),
          eta  = Var("eta",  float,precision=8),
          mass = Var("?mass>10 || (pdgId==22 && mass > 1)?mass:0", float,precision=8,doc="Mass stored for all particles with mass > 10 GeV and photons with mass > 1 GeV. For other particles you can lookup from PDGID"),
-	 pdgId  = Var("pdgId", int, doc="PDG id"),
-	 status  = Var("status", int, doc="Particle status. 1=stable"),
-	 genPartIdxMother = Var("?numberOfMothers>0?motherRef(0).key():-1", int, doc="index of the mother particle"),
+         pdgId  = Var("pdgId", int, doc="PDG id"),
+         status  = Var("status", int, doc="Particle status. 1=stable"),
+         genPartIdxMother = Var("?numberOfMothers>0?motherRef(0).key():-1", int, doc="index of the mother particle"),
+         statusFlags = (Var(
+            "statusFlags().isLastCopyBeforeFSR()                  * 16384 +"
+            "statusFlags().isLastCopy()                           * 8192  +"
+            "statusFlags().isFirstCopy()                          * 4096  +"
+            "statusFlags().fromHardProcessBeforeFSR()             * 2048  +"
+            "statusFlags().isDirectHardProcessTauDecayProduct()   * 1024  +"
+            "statusFlags().isHardProcessTauDecayProduct()         * 512   +"
+            "statusFlags().fromHardProcess()                      * 256   +"
+            "statusFlags().isHardProcess()                        * 128   +"
+            "statusFlags().isDirectHadronDecayProduct()           * 64    +"
+            "statusFlags().isDirectPromptTauDecayProduct()        * 32    +"
+            "statusFlags().isDirectTauDecayProduct()              * 16    +"
+            "statusFlags().isPromptTauDecayProduct()              * 8     +"
+            "statusFlags().isTauDecayProduct()                    * 4     +"
+            "statusFlags().isDecayedLeptonHadron()                * 2     +"
+            "statusFlags().isPrompt()                             * 1      ",
+         int, doc="gen status flags stored bitwise")),
  
     )
 )
